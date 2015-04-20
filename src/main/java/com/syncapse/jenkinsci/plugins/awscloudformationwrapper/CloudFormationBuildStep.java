@@ -103,7 +103,9 @@ public class CloudFormationBuildStep extends Builder{
 		return new CloudFormation(logger, postBuildStackBean.getStackName(), build
 				.getWorkspace().child(postBuildStackBean.getCloudFormationRecipe())
 				.readToString(), postBuildStackBean.getParsedParameters(env),
-				postBuildStackBean.getTimeout(), postBuildStackBean.getParsedAwsAccessKey(env),
+				postBuildStackBean.getTimeout(), 
+				postBuildStackBean.getUseIamRole(),
+				postBuildStackBean.getParsedAwsAccessKey(env),
 				postBuildStackBean.getParsedAwsSecretKey(env),
 				postBuildStackBean.getAwsRegion(), env,false,postBuildStackBean.getSleep());
 

@@ -49,6 +49,8 @@ public class PostBuildStackBean extends AbstractDescribableImpl<PostBuildStackBe
 	 */
 	private long timeout;
 	
+	private Boolean useIamRole;
+	
 	/**
 	 * The access key to call Amazon's APIs
 	 */
@@ -99,6 +101,10 @@ public class PostBuildStackBean extends AbstractDescribableImpl<PostBuildStackBe
 
 	public long getTimeout() {
 		return timeout;
+	}
+
+	public Boolean getUseIamRole() {
+		return useIamRole;
 	}
 
 	public String getAwsAccessKey() {
@@ -202,19 +208,24 @@ public class PostBuildStackBean extends AbstractDescribableImpl<PostBuildStackBe
 
 		public FormValidation doCheckAwsAccessKey(
 				@AncestorInPath AbstractProject<?, ?> project,
-				@QueryParameter String value) throws IOException {
-			if (0 == value.length()) {
+				@QueryParameter String value, @QueryParameter Boolean useIamRole) throws IOException {
+			if (0 == value.length() && !useIamRole) {
 				return FormValidation.error("Empty aws access key");
+			} else if (value.length() >0 && useIamRole) {
+				return FormValidation.warning("aws access key is not needed for IAM role");
 			}
 			return FormValidation.ok();
 		}
 
 		public FormValidation doCheckAwsSecretKey(
 				@AncestorInPath AbstractProject<?, ?> project,
-				@QueryParameter String value) throws IOException {
-			if (0 == value.length()) {
+				@QueryParameter String value, @QueryParameter Boolean useIamRole) throws IOException {
+			if (0 == value.length() && !useIamRole) {
 				return FormValidation.error("Empty aws secret key");
+			} else if (value.length() >0 && useIamRole) {
+				return FormValidation.warning("aws secret key is not needed for IAM role");
 			}
+			
 			return FormValidation.ok();
 		}
 		

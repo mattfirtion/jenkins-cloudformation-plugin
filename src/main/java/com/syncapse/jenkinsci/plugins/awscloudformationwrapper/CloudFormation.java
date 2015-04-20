@@ -13,6 +13,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationAsyncClient;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
@@ -57,6 +58,7 @@ public class CloudFormation {
     private String recipe;
     private List<Parameter> parameters;
     private long timeout;
+    private Boolean useIamRole;
     private String awsAccessKey;
     private String awsSecretKey;
     private PrintStream logger;
@@ -86,13 +88,14 @@ public class CloudFormation {
      */
     public CloudFormation(PrintStream logger, String stackName,
             String recipeBody, Map<String, String> parameters,
-            long timeout, String awsAccessKey, String awsSecretKey, Region region,
+            long timeout, Boolean useIamRole, String awsAccessKey, String awsSecretKey, Region region,
             boolean autoDeleteStack, EnvVars envVars, Boolean isPrefixSelected) {
 
         this.logger = logger;
         this.stackName = stackName;
         this.recipe = recipeBody;
         this.parameters = parameters(parameters);
+        this.useIamRole = useIamRole;
         this.awsAccessKey = awsAccessKey;
         this.awsSecretKey = awsSecretKey;
         this.awsRegion = region != null ? region : Region.getDefault();
@@ -112,13 +115,14 @@ public class CloudFormation {
     }
     public CloudFormation(PrintStream logger, String stackName,
             String recipeBody, Map<String, String> parameters,
-            long timeout, String awsAccessKey, String awsSecretKey, Region region,
+            long timeout, Boolean useIamRole, String awsAccessKey, String awsSecretKey, Region region,
             EnvVars envVars, Boolean isPrefixSelected,long sleep) {
 
         this.logger = logger;
         this.stackName = stackName;
         this.recipe = recipeBody;
         this.parameters = parameters(parameters);
+        this.useIamRole = useIamRole;
         this.awsAccessKey = awsAccessKey;
         this.awsSecretKey = awsSecretKey;
         this.awsRegion = region != null ? region : Region.getDefault();
@@ -134,13 +138,13 @@ public class CloudFormation {
         this.autoDeleteStack = false;
         this.envVars = envVars;
         this.sleep=sleep;
-    
+        
     }
     public CloudFormation(PrintStream logger, String stackName,
             String recipeBody, Map<String, String> parameters, long timeout,
-            String awsAccessKey, String awsSecretKey, boolean autoDeleteStack,
+            Boolean useIamRole, String awsAccessKey, String awsSecretKey, boolean autoDeleteStack,
             EnvVars envVars, Boolean isPrefixSelected) {
-        this(logger, stackName, recipeBody, parameters, timeout, awsAccessKey,
+        this(logger, stackName, recipeBody, parameters, timeout, useIamRole, awsAccessKey,
                 awsSecretKey, null, autoDeleteStack, envVars, isPrefixSelected);
     }
 
@@ -228,13 +232,24 @@ public class CloudFormation {
         return message.toString();
     }
 
-    protected AmazonCloudFormation getAWSClient() {
-        AWSCredentials credentials = new BasicAWSCredentials(this.awsAccessKey,
-                this.awsSecretKey);
-        AmazonCloudFormation amazonClient = new AmazonCloudFormationAsyncClient(
-                credentials);
-        amazonClient.setEndpoint(awsRegion.endPoint);
-        return amazonClient;
+    // TODO Need to add a ClientConfiguration for proxy connections
+    protected AmazonCloudFormation getAWSClient() throws AmazonClientException {    	
+    	if(!useIamRole) {
+    		AWSCredentials credentials = new BasicAWSCredentials(this.awsAccessKey, this.awsSecretKey);
+    		AmazonCloudFormation amazonClient = new AmazonCloudFormationAsyncClient(credentials);
+    		amazonClient.setEndpoint(awsRegion.endPoint);
+    		return amazonClient;
+    	}
+    	else {
+    		try {
+    			AmazonCloudFormation amazonClient = new AmazonCloudFormationAsyncClient(new InstanceProfileCredentialsProvider());
+    			amazonClient.setEndpoint(awsRegion.endPoint);
+        		return amazonClient;
+    		} catch (AmazonClientException e) {
+    			logger.println(e.getMessage());
+    		}
+    	}
+		return amazonClient;
     }
 
     private boolean waitForStackToBeDeleted() {
@@ -410,6 +425,7 @@ public class CloudFormation {
         return stackToDelete;
     }
 
+    // TODO Need to make sure this works with IAM role
     private List<StackSummary> getAllRunningStacks() {
         client = new AmazonCloudFormationClient(new AWSCredentials() {
             public String getAWSAccessKeyId() {

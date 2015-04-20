@@ -49,6 +49,8 @@ public class StackBean extends AbstractDescribableImpl<StackBean> {
 	 */
 	private long timeout;
 	
+	private Boolean useIamRole;
+	
 	/**
 	 * The access key to call Amazon's APIs
 	 */
@@ -68,7 +70,7 @@ public class StackBean extends AbstractDescribableImpl<StackBean> {
 	
 	@DataBoundConstructor
 	public StackBean(String stackName, String description,
-			String cloudFormationRecipe, String parameters, long timeout,
+			String cloudFormationRecipe, String parameters, long timeout, Boolean useIamRole,
 			String awsAccessKey, String awsSecretKey, boolean autoDeleteStack, Region awsRegion) {
 		super();
 		this.stackName = stackName;
@@ -76,6 +78,7 @@ public class StackBean extends AbstractDescribableImpl<StackBean> {
 		this.cloudFormationRecipe = cloudFormationRecipe;
 		this.parameters = parameters;
 		this.timeout = timeout;
+		this.useIamRole = useIamRole;
 		this.awsAccessKey = awsAccessKey;
 		this.awsSecretKey = awsSecretKey;
         this.autoDeleteStack = autoDeleteStack;
@@ -100,6 +103,10 @@ public class StackBean extends AbstractDescribableImpl<StackBean> {
 
 	public long getTimeout() {
 		return timeout;
+	}
+
+	public Boolean getUseIamRole() {
+		return useIamRole;
 	}
 
 	public String getAwsAccessKey() {
@@ -192,18 +199,22 @@ public class StackBean extends AbstractDescribableImpl<StackBean> {
 
 		public FormValidation doCheckAwsAccessKey(
 				@AncestorInPath AbstractProject<?, ?> project,
-				@QueryParameter String value) throws IOException {
-			if (0 == value.length()) {
+				@QueryParameter String value, @QueryParameter Boolean useIamRole) throws IOException {
+			if (0 == value.length() && !useIamRole) {
 				return FormValidation.error("Empty aws access key");
+			} else if (value.length() >0 && useIamRole) {
+				return FormValidation.warning("aws access key is not needed for IAM role");
 			}
 			return FormValidation.ok();
 		}
 
 		public FormValidation doCheckAwsSecretKey(
 				@AncestorInPath AbstractProject<?, ?> project,
-				@QueryParameter String value) throws IOException {
-			if (0 == value.length()) {
+				@QueryParameter String value, @QueryParameter Boolean useIamRole) throws IOException {
+			if (0 == value.length() && !useIamRole) {
 				return FormValidation.error("Empty aws secret key");
+			} else if (value.length() >0 && useIamRole) {
+				return FormValidation.warning("aws secret key is not needed for IAM role");
 			}
 			return FormValidation.ok();
 		}

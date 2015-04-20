@@ -124,7 +124,9 @@ public class CloudFormationBuildWrapper extends BuildWrapper {
 		return new CloudFormation(logger, stackBean.getStackName(), build
 				.getWorkspace().child(stackBean.getCloudFormationRecipe())
 				.readToString(), stackBean.getParsedParameters(env),
-				stackBean.getTimeout(), stackBean.getParsedAwsAccessKey(env),
+				stackBean.getTimeout(), 
+				stackBean.getUseIamRole(),
+				stackBean.getParsedAwsAccessKey(env),
 				stackBean.getParsedAwsSecretKey(env),
 				stackBean.getAwsRegion(), stackBean.getAutoDeleteStack(), env,false);
 

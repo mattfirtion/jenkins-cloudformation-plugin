@@ -36,6 +36,7 @@ public class CloudFormationTest {
 
 	private String recipeBody = "recipe body";
 	private Map<String, String> parameters = new HashMap<String, String>();
+	private Boolean useIamRole = false;
 	private String awsAccessKey = "accessKey";
 	private String awsSecretKey = "secretKey";
 
@@ -46,7 +47,7 @@ public class CloudFormationTest {
 	public void setup() throws Exception {
 
 		cf = new CloudFormation(System.out, TEST_STACK, recipeBody, parameters,
-				-12345, awsAccessKey, awsSecretKey, true, new EnvVars(),false) {
+				-12345, useIamRole, awsAccessKey, awsSecretKey, true, new EnvVars(),false) {
 			@Override
 			protected AmazonCloudFormation getAWSClient() {
 				return awsClient;

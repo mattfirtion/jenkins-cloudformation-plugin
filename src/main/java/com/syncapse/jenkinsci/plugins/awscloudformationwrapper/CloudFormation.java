@@ -260,9 +260,8 @@ public class CloudFormation {
         ClientConfiguration config = new ClientConfiguration();
         config.setSignerOverride("QueryStringSignerType");
         ProxyConfiguration proxyConfig = Jenkins.getInstance().proxy;
-        System.out.println(awsRegion.endPoint);
 
-        /*Proxy proxy = proxyConfig == null ? Proxy.NO_PROXY : proxyConfig.createProxy(awsRegion.endPoint);
+        Proxy proxy = proxyConfig == null ? Proxy.NO_PROXY : proxyConfig.createProxy(awsRegion.endPoint);
         if (! proxy.equals(Proxy.NO_PROXY) && proxy.address() instanceof InetSocketAddress) {
             System.out.println("using proxy");
             InetSocketAddress address = (InetSocketAddress) proxy.address();
@@ -272,10 +271,10 @@ public class CloudFormation {
                 config.setProxyUsername(proxyConfig.getUserName());
                 config.setProxyPassword(proxyConfig.getPassword());
             }
-        }*/
+        }
 
         //AmazonCloudFormation amazonClient = new AmazonCloudFormationAsyncClient(credentialsProvider, config);
-        AmazonCloudFormation amazonClient = new AmazonCloudFormationAsyncClient(awsCredentialsProvider);
+        AmazonCloudFormation amazonClient = new AmazonCloudFormationAsyncClient(awsCredentialsProvider, config);
         amazonClient.setEndpoint(awsRegion.endPoint);
         return amazonClient;
     }
